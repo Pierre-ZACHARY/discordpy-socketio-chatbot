@@ -40,9 +40,12 @@ async def on_message(message: discord.message):
         channel_id = message.channel.id
         if channel_id in connected:
             websocket = connected[channel_id]
-            await websocket.send(json.dumps({"content": message.content, "attachments": message.attachments,
-                                             "author": {"name": message.author.nick if message.author.nick is not None else message.author.name,
-                                                        "avatar_url": str(message.author.avatar_url)}}))
+            await websocket.send(json.dumps({"content": message.content,
+                                             "attachments": [str(a) for a in message.attachments],
+                                             "author": {
+                                                 "name": message.author.nick if message.author.nick is not None else message.author.name,
+                                                 "avatar_url": str(message.author.avatar_url)}
+                                             }))
 
 
 async def consumer_handler(websocket, path):
