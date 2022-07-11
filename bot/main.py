@@ -40,7 +40,7 @@ async def on_message(message: discord.message):
         channel_id = message.channel.id
         if channel_id in connected:
             websocket = connected[channel_id]
-            await websocket.send(message.content+"\n"+"\n".join(message.attachments))
+            await websocket.send(json.dumps({"content": message.content, "attachments":message.attachments, "author":{"name":message.author.nick, "avatar_url":message.author.avatar_url}}))
 
 
 async def consumer_handler(websocket, path):
