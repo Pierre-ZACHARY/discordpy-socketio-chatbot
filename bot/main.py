@@ -14,7 +14,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 websites = {}
 uid_channels = {}
-websites["PIERRE_ZACHARY_FR"] = os.getenv("PIERRE_ZACHARY_FR")
+websites["CHANNEL_ID"] = os.getenv("CHANNEL_ID")
 
 
 @bot.event
@@ -77,4 +77,13 @@ if __name__ == "__main__":
     stop = loop.create_future()
     loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
     loop.run_until_complete(asyncio.wait([server, stop], return_when=asyncio.FIRST_COMPLETED))
-    bot.run(TOKEN)
+    stop_bot = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop_bot.set_result, None)
+    try:
+        bot_server = bot.start(token=TOKEN)
+        loop.run_until_complete(asyncio.wait([bot_server, stop_bot], return_when=asyncio.FIRST_COMPLETED))
+    except KeyboardInterrupt:
+        loop.run_until_complete(bot.close())
+        # cancel all tasks lingering
+    finally:
+        loop.close()

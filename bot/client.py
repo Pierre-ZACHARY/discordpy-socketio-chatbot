@@ -5,7 +5,7 @@ import uuid
 
 import websockets
 
-uri = 'ws://localhost:8000/PIERRE_ZACHARY_FR'
+uri = 'ws://chatbot.pierre-zachary.fr/CHANNEL_ID'
 
 
 async def ainput(string: str) -> str:
