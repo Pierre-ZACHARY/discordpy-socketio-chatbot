@@ -1,7 +1,10 @@
 import asyncio
 import json
 import os
+import signal
+import uuid
 
+import discord
 import websockets as websockets
 from discord import CategoryChannel
 from discord.ext import commands
@@ -12,6 +15,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 websites = {}
 uid_channels = {}
 websites["PIERRE_ZACHARY_FR"] = os.getenv("PIERRE_ZACHARY_FR")
+
 
 @bot.event
 async def on_ready():
@@ -27,34 +31,50 @@ async def ping(ctx):
     await ctx.send("pong")
 
 
-async def response(websocket, path):
-    message = await websocket.recv()
-    categorie_id = websites[path.split("/")[-1]]
-    message = json.loads(message)
-    uid = message["uid"]
-    content = message["content"]
+connected = {}
 
-    if uid not in uid_channels:
-        channel = bot.get_channel(int(categorie_id))
-        textchannel = await channel.create_text_channel(uid)
-        uid_channels[uid] = textchannel
-    else:
-        textchannel = uid_channels[uid]
 
-    await textchannel.send(content)
-    # answer = f"[{message}]"
+@bot.event
+async def on_message(message: discord.message):
+    if message.author.id != bot.user.id:
+        channel_id = message.channel.id
+        if channel_id in connected:
+            websocket = connected[channel_id]
+            await websocket.send(message.content)
 
-    # await websocket.send(answer)   # if client expect `response` then server has to send `response`
-    # print(f"[ws server] answer > {answer}")
 
-    # `get_channel()` has to be used after `client.run()`
-    # channel = client.get_channel(MY_CHANNEL_ID)  # access to channel
-
-    # await channel.send(f'websockets: {message}')
+async def consumer_handler(websocket, path):
+    try:
+        while True:
+            message = await websocket.recv()
+            categorie_id = websites[path.split("/")[-1]]
+            message = json.loads(message)
+            content = message["content"]
+            if websocket not in uid_channels:
+                channel = bot.get_channel(int(categorie_id))
+                textchannel = await channel.create_text_channel(str(uuid.uuid1()))
+                uid_channels[websocket] = textchannel
+                connected[textchannel.id] = websocket
+            else:
+                textchannel = uid_channels[websocket]
+            await textchannel.send(content)
+    except websockets.ConnectionClosed as e:
+        textchannel = uid_channels[websocket]
+        connected.pop(textchannel.id)
+        uid_channels.pop(websocket)
+        await textchannel.send("Websocket closed, this channel will be deleted in 10 minutes.")
+        await asyncio.sleep(600)
+        await textchannel.delete()
 
 
 if __name__ == "__main__":
-    print(websites)
-    server = websockets.serve(response, '0.0.0.0', '8000')
-    asyncio.new_event_loop().run_until_complete(server)
+    server = websockets.serve(
+        consumer_handler,
+        host="0.0.0.0",
+        port=int(os.environ["PORT"]),
+    )
+    loop = asyncio.new_event_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+    loop.run_until_complete(asyncio.wait([server, stop], return_when=asyncio.FIRST_COMPLETED))
     bot.run(TOKEN)
