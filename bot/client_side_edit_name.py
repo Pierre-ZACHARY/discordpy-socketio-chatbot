@@ -1,3 +1,4 @@
+# you can edit the channel name
 import asyncio
 import json
 import sys
@@ -18,14 +19,15 @@ async def ainput(string: str) -> str:
 async def consumer_handler(websocket):
     async for message in websocket:
         print(f"\r[ws server] message  > {message}")
-        print("msg: ", end="")
+        print("set_name: ", end="")
 
 
 async def producer_handler(websocket):
+    await websocket.send(json.dumps({"content": ""})) # open a new channel
     while True:
-        message = await ainput("msg: ")
-        print(f"[ws client] message  > {message}", end="")
-        await websocket.send(json.dumps({"content": message}))
+        name = await ainput("set_name: ")
+        print(f"[ws client] set_name  > {name}", end="")
+        await websocket.send(json.dumps({"content": "", "set_name": name}))
 
 
 async def send_message():

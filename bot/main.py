@@ -40,7 +40,9 @@ async def on_message(message: discord.message):
         channel_id = message.channel.id
         if channel_id in connected:
             websocket = connected[channel_id]
-            await websocket.send(json.dumps({"content": message.content, "attachments":message.attachments, "author":{"name":message.author.nick, "avatar_url":message.author.avatar_url}}))
+            await websocket.send(json.dumps({"content": message.content, "attachments": message.attachments,
+                                             "author": {"name": message.author.nick,
+                                                        "avatar_url": message.author.avatar_url}}))
 
 
 async def consumer_handler(websocket, path):
@@ -49,7 +51,6 @@ async def consumer_handler(websocket, path):
             message = await websocket.recv()
             categorie_id = websites[path.split("/")[-1]]
             message = json.loads(message)
-            content = message["content"]
             if websocket not in uid_channels:
                 channel = bot.get_channel(int(categorie_id))
                 textchannel = await channel.create_text_channel(str(uuid.uuid1()))
@@ -57,7 +58,10 @@ async def consumer_handler(websocket, path):
                 connected[textchannel.id] = websocket
             else:
                 textchannel = uid_channels[websocket]
-            await textchannel.send(content)
+            if "set_name" in message:
+                await textchannel.edit(name=message["set_name"])
+            if message["content"] != "":
+                await textchannel.send(message["content"])
     except websockets.ConnectionClosed as e:
         textchannel = uid_channels[websocket]
         connected.pop(textchannel.id)
@@ -65,6 +69,7 @@ async def consumer_handler(websocket, path):
         await textchannel.send("Websocket closed, this channel will be deleted in 10 minutes.")
         await asyncio.sleep(600)
         await textchannel.delete()
+
 
 if __name__ == "__main__":
     server = websockets.serve(
