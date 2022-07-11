@@ -41,7 +41,7 @@ async def on_message(message: discord.message):
         if channel_id in connected:
             websocket = connected[channel_id]
             await websocket.send(json.dumps({"content": message.content, "attachments": message.attachments,
-                                             "author": {"name": message.author.nick,
+                                             "author": {"name": message.author.nick if message.author.nick is not None else message.author.name,
                                                         "avatar_url": str(message.author.avatar_url)}}))
 
 
