@@ -66,7 +66,6 @@ async def consumer_handler(websocket, path):
         await asyncio.sleep(600)
         await textchannel.delete()
 
-
 if __name__ == "__main__":
     server = websockets.serve(
         consumer_handler,
@@ -80,8 +79,7 @@ if __name__ == "__main__":
     stop_bot = loop.create_future()
     loop.add_signal_handler(signal.SIGTERM, stop_bot.set_result, None)
     try:
-        bot_server = bot.start(token=TOKEN)
-        loop.run_until_complete(asyncio.wait([bot_server, stop_bot], return_when=asyncio.FIRST_COMPLETED))
+        loop.run_until_complete(asyncio.wait([bot.run(TOKEN), stop_bot], return_when=asyncio.FIRST_COMPLETED))
     except KeyboardInterrupt:
         loop.run_until_complete(bot.close())
         # cancel all tasks lingering
