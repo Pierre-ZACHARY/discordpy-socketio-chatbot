@@ -40,7 +40,7 @@ async def on_message(message: discord.message):
         channel_id = message.channel.id
         if channel_id in connected:
             websocket = connected[channel_id]
-            await websocket.send(message.content)
+            await websocket.send(message.content+"\n"+message.attachments.join("\n"))
 
 
 async def consumer_handler(websocket, path):
