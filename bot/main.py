@@ -98,12 +98,5 @@ if __name__ == "__main__":
     stop = loop.create_future()
     loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
     loop.run_until_complete(asyncio.wait([server, stop], return_when=asyncio.FIRST_COMPLETED))
-    stop_bot = loop.create_future()
-    loop.add_signal_handler(signal.SIGTERM, stop_bot.set_result, None)
-    try:
-        loop.run_until_complete(asyncio.wait([bot.run(TOKEN), stop_bot], return_when=asyncio.FIRST_COMPLETED))
-    except KeyboardInterrupt:
-        loop.run_until_complete(bot.close())
-        # cancel all tasks lingering
-    finally:
-        loop.close()
+    bot.run(TOKEN)
+
