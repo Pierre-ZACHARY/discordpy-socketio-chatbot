@@ -27,8 +27,18 @@ async def on_ready():
 
 
 @bot.command()
-async def ping(ctx):
+async def ping(ctx: discord.ext.commands.Context):
     await ctx.send("pong")
+
+
+dont_delete = []
+
+
+@bot.command()
+async def disable(ctx: discord.ext.commands.Context):
+    dont_delete.append(ctx.channel.id)
+    msg: discord.Message = ctx.message
+    await msg.add_reaction("✅")
 
 
 connected = {}
@@ -71,7 +81,10 @@ async def consumer_handler(websocket, path):
         uid_channels.pop(websocket)
         await textchannel.send("Websocket closed, this channel will be deleted in 10 minutes.")
         await asyncio.sleep(600)
-        await textchannel.delete()
+        if textchannel.id not in dont_delete:
+            await textchannel.delete()
+        else:
+            dont_delete.remove(textchannel.id)
 
 
 if __name__ == "__main__":
