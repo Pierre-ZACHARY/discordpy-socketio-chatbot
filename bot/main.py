@@ -47,6 +47,7 @@ connected = {}
 @bot.event
 async def on_message(message: discord.message):
     if message.author.id != bot.user.id:
+        await bot.process_commands(message)
         channel_id = message.channel.id
         if channel_id in connected:
             websocket = connected[channel_id]
