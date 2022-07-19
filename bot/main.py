@@ -1,8 +1,10 @@
 import asyncio
+import datetime
 import json
 import os
 import signal
 import uuid
+from typing import Union
 
 import discord
 import websockets as websockets
@@ -57,6 +59,16 @@ async def on_message(message: discord.message):
                                                  "name": message.author.nick if message.author.nick is not None else message.author.name,
                                                  "avatar_url": str(message.author.avatar_url)}
                                              }))
+
+
+@bot.event
+async def on_typing(channel: discord.abc.Messageable, user: Union[discord.User, discord.Member], when: datetime.datetime):
+    if user.id != bot.user.id:
+        channel_id = channel.id
+        if channel_id in connected:
+            websocket = connected[channel_id]
+            await websocket.send(json.dumps({"type": "TYPING_EVENT",
+                                             "date": when.time().strftime("%H:%M:%S")}))
 
 
 async def consumer_handler(websocket, path):
