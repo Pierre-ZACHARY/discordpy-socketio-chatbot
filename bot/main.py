@@ -76,6 +76,7 @@ async def consumer_handler(websocket, path):
     try:
         while True:
             message = await websocket.recv()
+            print(message)
             categorie_id = websites[path.split("/")[-1]]
             message = json.loads(message)
             if websocket not in uid_channels:
@@ -86,7 +87,11 @@ async def consumer_handler(websocket, path):
             else:
                 textchannel = uid_channels[websocket]
             if "set_name" in message:
-                await textchannel.edit(name=message["set_name"])
+                if textchannel.name != message["set_name"]:
+                    try:
+                        await asyncio.wait_for(textchannel.edit(name=message["set_name"]), timeout=1)
+                    except asyncio.TimeoutError:
+                        print("Api cap exceeded")
             if "content" in message and message["content"] != "":
                 await textchannel.send(message["content"])
     except websockets.ConnectionClosed as e:
