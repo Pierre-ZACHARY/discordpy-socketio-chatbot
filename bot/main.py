@@ -87,18 +87,13 @@ async def consumer_handler(websocket, path):
                 textchannel = uid_channels[websocket]
             if "set_name" in message:
                 await textchannel.edit(name=message["set_name"])
-            if message["content"] != "":
+            if "content" in message and message["content"] != "":
                 await textchannel.send(message["content"])
     except websockets.ConnectionClosed as e:
         textchannel = uid_channels[websocket]
         connected.pop(textchannel.id)
         uid_channels.pop(websocket)
-        await textchannel.send("Websocket closed, this channel will be deleted in 10 minutes.")
-        await asyncio.sleep(600)
-        if textchannel.id not in dont_delete:
-            await textchannel.delete()
-        else:
-            dont_delete.remove(textchannel.id)
+        await textchannel.send("Websocket closed.")
 
 
 if __name__ == "__main__":
