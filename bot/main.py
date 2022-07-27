@@ -22,15 +22,19 @@ websites["CHANNEL_ID"] = os.getenv("CHANNEL_ID")
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user.name}({bot.user.id})")
-    for website, wib in websites.items():
-        channel: CategoryChannel = bot.get_channel(int(wib))
-        for text_channel in channel.channels:
-            await text_channel.delete()
 
 
 @bot.command()
 async def ping(ctx: discord.ext.commands.Context):
     await ctx.send("pong")
+
+
+@bot.command()
+async def clearall(ctx: discord.ext.commands.Context):
+    for website, wib in websites.items():
+        channel: CategoryChannel = bot.get_channel(int(wib))
+        for text_channel in channel.channels:
+            await text_channel.delete()
 
 
 dont_delete = []
