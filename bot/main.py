@@ -83,13 +83,15 @@ async def consumer_handler(websocket, path):
             print(message)
             categorie_id = websites[path.split("/")[-1]]
             message = json.loads(message)
-            if websocket not in uid_channels:
+            if "key" not in message:
+                continue
+            if message["key"] not in uid_channels:
                 channel = bot.get_channel(int(categorie_id))
                 textchannel = await channel.create_text_channel(str(uuid.uuid1()))
-                uid_channels[websocket] = textchannel
+                uid_channels[message["key"]] = textchannel
                 connected[textchannel.id] = websocket
             else:
-                textchannel = uid_channels[websocket]
+                textchannel = uid_channels[message["key"]]
             if "set_name" in message:
                 if textchannel.name != message["set_name"]:
                     try:
@@ -100,10 +102,7 @@ async def consumer_handler(websocket, path):
             if "content" in message and message["content"] != "":
                 await textchannel.send(message["content"])
     except websockets.ConnectionClosed as e:
-        textchannel = uid_channels[websocket]
-        connected.pop(textchannel.id)
-        uid_channels.pop(websocket)
-        await textchannel.send("Websocket closed.")
+        pass
 
 
 if __name__ == "__main__":
