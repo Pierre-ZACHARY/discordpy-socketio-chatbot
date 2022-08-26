@@ -5,7 +5,7 @@ import uuid
 
 import websockets
 
-uri = 'ws://chatbot.pierre-zachary.fr/CHANNEL_ID'
+uri = 'ws://localhost:8000/CHANNEL_ID'
 
 
 async def ainput(string: str) -> str:
@@ -25,7 +25,7 @@ async def producer_handler(websocket):
     while True:
         message = await ainput("msg: ")
         print(f"[ws client] message  > {message}", end="")
-        await websocket.send(json.dumps({"content": message}))
+        await websocket.send(json.dumps({"content": message, "key": "testkey"}))
 
 
 async def send_message():

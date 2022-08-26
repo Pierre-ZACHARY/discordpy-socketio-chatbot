@@ -16,6 +16,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 websites = {}
 uid_channels = {}
+keyDict = {}
 websites["CHANNEL_ID"] = os.getenv("CHANNEL_ID")
 
 
@@ -80,11 +81,12 @@ async def consumer_handler(websocket, path):
     try:
         while True:
             message = await websocket.recv()
-            print(message)
             categorie_id = websites[path.split("/")[-1]]
             message = json.loads(message)
             if "key" not in message:
                 continue
+            if str(websocket) not in keyDict:
+                keyDict[str(websocket)] = message["key"]
             if message["key"] not in uid_channels:
                 channel = bot.get_channel(int(categorie_id))
                 textchannel = await channel.create_text_channel(str(uuid.uuid1()))
@@ -102,7 +104,11 @@ async def consumer_handler(websocket, path):
             if "content" in message and message["content"] != "":
                 await textchannel.send(message["content"])
     except websockets.ConnectionClosed as e:
-        pass
+        if str(websocket) in keyDict:
+            key = keyDict[str(websocket)]
+            textchannel = uid_channels[key]
+            print(textchannel)
+            await textchannel.send("Info : Websocket closed.")
 
 
 if __name__ == "__main__":
@@ -111,6 +117,7 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.environ["PORT"]),
     )
+    print("listening on port "+str(int(os.environ["PORT"])))
     loop = asyncio.new_event_loop()
     stop = loop.create_future()
     loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
