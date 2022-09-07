@@ -18,6 +18,7 @@ websites = {}
 uid_channels = {}
 keyDict = {}
 websockets_todo_setname = {}
+textchannel_disconnected_sent = {}
 websites["CHANNEL_ID"] = os.getenv("CHANNEL_ID")
 
 
@@ -110,14 +111,16 @@ async def consumer_handler(websocket, path):
                     websockets_todo_setname[str(websocket)] = None
 
                 await textchannel.send(message["content"])
+                textchannel_disconnected_sent[textchannel] = False
+
     except websockets.ConnectionClosed as e:
         if str(websocket) in keyDict:
             key = keyDict[str(websocket)]
             if key in uid_channels:
                 textchannel: TextChannel = uid_channels[key]
-                last_msg: Message = textchannel.last_message
-                if last_msg.content != "Info : Websocket closed.":
+                if textchannel in textchannel_disconnected_sent and not textchannel_disconnected_sent[textchannel]:
                     await textchannel.send("Info : Websocket closed.")
+                    textchannel_disconnected_sent[textchannel] = True
 
 
 if __name__ == "__main__":
