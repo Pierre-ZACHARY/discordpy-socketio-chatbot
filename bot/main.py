@@ -88,8 +88,7 @@ async def consumer_handler(websocket, path):
             message = json.loads(message)
             if "key" not in message:
                 continue
-            if str(websocket) not in keyDict:
-                keyDict[str(websocket)] = message["key"]
+            keyDict[message["key"]] = str(websocket)
             if "set_name" in message:
                 websockets_todo_setname[str(websocket)] = message["set_name"]
             if "content" in message and message["content"] != "":
@@ -114,8 +113,12 @@ async def consumer_handler(websocket, path):
                 textchannel_disconnected_sent[textchannel] = False
 
     except websockets.ConnectionClosed as e:
-        if str(websocket) in keyDict:
-            key = keyDict[str(websocket)]
+        if str(websocket) in keyDict.values():
+            key = None
+            for k, v in keyDict.items():
+                if v == str(websocket):
+                    key = k
+                    break
             if key in uid_channels:
                 textchannel: TextChannel = uid_channels[key]
                 if textchannel in textchannel_disconnected_sent and not textchannel_disconnected_sent[textchannel]:
