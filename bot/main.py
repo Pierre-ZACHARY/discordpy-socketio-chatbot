@@ -103,7 +103,7 @@ async def consumer_handler(websocket, path):
                     if textchannel.name != websockets_todo_setname[str(websocket)]:
                         try:
                             await asyncio.wait_for(
-                                textchannel.edit(name=websockets_todo_setname[str(websocket)], timeout=1))
+                                textchannel.edit(name=websockets_todo_setname[str(websocket)]), timeout=1)
                         except asyncio.TimeoutError:
                             await textchannel.send("Tried to change channel name to : " + websockets_todo_setname[
                                 str(websocket)] + " ( API cap exceeded 2edits/10min )")
