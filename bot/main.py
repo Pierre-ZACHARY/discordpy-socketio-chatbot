@@ -90,7 +90,7 @@ async def consumer_handler(websocket, path):
                 continue
             keyDict[message["key"]] = str(websocket)
             if "set_name" in message:
-                websockets_todo_setname[str(websocket)] = message["set_name"]
+                websockets_todo_setname[message["key"]] = message["set_name"]
             if "content" in message and message["content"] != "":
                 if message["key"] not in uid_channels:
                     channel = bot.get_channel(int(categorie_id))
@@ -99,15 +99,14 @@ async def consumer_handler(websocket, path):
                     connected[textchannel.id] = websocket
                 else:
                     textchannel = uid_channels[message["key"]]
-                if str(websocket) in websockets_todo_setname and websockets_todo_setname[str(websocket)] is not None:
-                    if textchannel.name != websockets_todo_setname[str(websocket)]:
+                if message["key"] in websockets_todo_setname and websockets_todo_setname[message["key"]] is not None:
+                    if textchannel.name != websockets_todo_setname[message["key"]]:
                         try:
                             await asyncio.wait_for(
-                                textchannel.edit(name=websockets_todo_setname[str(websocket)]), timeout=1)
+                                textchannel.edit(name=websockets_todo_setname[message["key"]]), timeout=1)
                         except asyncio.TimeoutError:
-                            await textchannel.send("Tried to change channel name to : " + websockets_todo_setname[
-                                str(websocket)] + " ( API cap exceeded 2edits/10min )")
-                    websockets_todo_setname[str(websocket)] = None
+                            await textchannel.send("Tried to change channel name to : " + websockets_todo_setname[message["key"]] + " ( API cap exceeded 2edits/10min )")
+                    websockets_todo_setname[message["key"]] = None
 
                 await textchannel.send(message["content"])
                 textchannel_disconnected_sent[textchannel] = False
