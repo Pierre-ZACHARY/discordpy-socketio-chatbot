@@ -99,7 +99,7 @@ async def consumer_handler(websocket, path):
                     connected[textchannel.id] = websocket
                 else:
                     textchannel = uid_channels[message["key"]]
-                if websockets_todo_setname[str(websocket)] is not None:
+                if str(websocket) in websockets_todo_setname and websockets_todo_setname[str(websocket)] is not None:
                     if textchannel.name != websockets_todo_setname[str(websocket)]:
                         try:
                             await asyncio.wait_for(
